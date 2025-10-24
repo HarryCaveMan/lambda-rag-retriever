@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+
+parse_args() {
+    for arg in "$@"
+    do
+        name="$(printf "%s" $arg | cut -d "=" -f1)"
+        val="$(printf "%s" $arg | cut -d "=" -f2)"
+        declare -g "$name"="$val"
+    done
+}
+
+get_uuid() {
+    printf "%s" `python -c "from sys import stdout;from uuid import uuid4; stdout.write(str(uuid4()))"`
+}
+
+deploy_ecr() {
+    parse_args $@
+    python3 $(dirname $0)deploy.py \
+        -p $profile \
+        -r $region \
+        -s ecr
+}
+
+docker_login() {
+    parse_args $@
+    aws \
+      --profile $profile \
+      --region $region \
+    ecr get-login-password | docker login \
+        --password-stdin \
+        -u AWS \
+        $ecr
+}
+
+build_docker() {
+    parse_args $@
+    docker build \
+        --platform linux/amd64 \
+        --build-arg MODEL_NAME=$model_name \
+        -t $local_tag \
+        $docker_dir
+}
+
+push_docker() {
+    parse_args $@
+    docker tag $local_tag $ecr/$repo:$tag
+    docker_login ecr=$ecr profile=$profile region=$region
+    docker push $ecr/$repo:$tag
+}
+
+deploy_lambda() {
+    parse_args $@
+    python3 $(dirname $0)/deploy.py \
+        -p $profile \
+        -r $region \
+        -u $uuid \
+        -s lambda
+}
+
+add_usage_plan() {
+    parse_args $@
+    python3 $(dirname $0)/add_usage_plan.py \
+        -n $usage_plan_name \
+        -p $profile \
+        -r $region
+}
+
+build_and_push_docker() {
+    build_docker $@
+    push_docker $@
+}
+
+build_and_deploy() {
+    parse_args $@
+    uuid=`get_uuid`
+    build_and_push_docker \
+        model_name=$model_name \
+        local_tag=$local_tag \
+        docker_dir=$docker_dir \
+        ecr=$ecr \
+        repo=$repo \
+        tag=$uuid \
+        profile=$profile \
+        region=$region
+    deploy_lambda \
+        profile=$profile \
+        region=$region \
+        uuid=$uuid        
+}
+
+
+
+command=$1
+shift
+
+case $command in
+    build_and_deploy|build_docker|push_docker|build_and_push_docker|docker_login|deploy_ecr|deploy_lambda|add_usage_plan)
+        $command $@
+    ;;
+    *)
+        echo "Invalid command: $command"
+        echo "supported commands are build_and_deploy|build_docker|push_docker|build_and_push_docker|docker_login|deploy_ecr|deploy_lambda|add_usage_plan"
+        exit 1
+    ;;
+esac

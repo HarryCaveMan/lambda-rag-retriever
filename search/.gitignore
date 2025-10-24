@@ -1,0 +1,11 @@
+data
+__pycache__
+*.pyc
+*.zip
+*.tar
+*.gz
+.env
+.coverage
+htmlcov
+ws
+.pytest_cache

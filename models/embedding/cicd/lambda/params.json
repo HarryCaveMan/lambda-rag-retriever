@@ -1,0 +1,28 @@
+{
+    "ecr":{
+        "StackName":"rag-embedding-ecr",
+        "StackParams":[
+            {
+                "ParameterKey": "ServiceName",
+                "ParameterValue": "rag"
+            }
+        ]
+    },
+    "lambda":{
+        "StackName":"rag-embedding-lambda",
+        "StackParams":[
+            {
+                "ParameterKey": "ServiceName",
+                "ParameterValue": "rag"
+            },
+            {
+                "ParameterKey": "ImageRepoUri",
+                "ParameterValue": "964545654092.dkr.ecr.us-east-1.amazonaws.com/rag-embedding-rt"
+            },
+            {
+                "ParameterKey": "Stage",
+                "ParameterValue": "v1"
+            }
+        ]
+    }
+}

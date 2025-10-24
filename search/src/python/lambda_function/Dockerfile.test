@@ -1,0 +1,3 @@
+FROM rag-retrieve-test
+
+ENTRYPOINT ["/bin/bash"]
