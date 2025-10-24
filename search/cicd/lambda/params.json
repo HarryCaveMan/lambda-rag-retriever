@@ -1,6 +1,6 @@
 {
     "ecr":{
-        "StackName":"rag-embedding-ecr",
+        "StackName":"rag-search-ecr",
         "StackParams":[
             {
                 "ParameterKey": "ServiceName",
@@ -9,7 +9,7 @@
         ]
     },
     "lambda":{
-        "StackName":"rag-embedding-lambda",
+        "StackName":"rag-search-lambda",
         "StackParams":[
             {
                 "ParameterKey": "ServiceName",
